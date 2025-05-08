@@ -1,6 +1,7 @@
 package org.steamcheck.project
 
 interface Platform {
+    val platform: String
     val name: String
 }
 
