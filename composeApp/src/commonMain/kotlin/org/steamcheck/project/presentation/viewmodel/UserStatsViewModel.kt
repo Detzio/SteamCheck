@@ -1,40 +1,40 @@
 package org.steamcheck.project.presentation.viewmodel
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import org.steamcheck.project.presentation.state.UserStatsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import org.steamcheck.project.domain.usecase.GetUserStatsUseCase
+import org.steamcheck.project.presentation.state.UserStatsState
 
-class UserStatsViewModel {
+class UserStatsViewModel(
+    private val getUserStatsUseCase: GetUserStatsUseCase
+) {
     private val _state = MutableStateFlow(UserStatsState())
     val state: StateFlow<UserStatsState> get() = _state
+
+    private val viewModelScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     var steamID = mutableStateOf("")
         private set
@@ -43,47 +43,68 @@ class UserStatsViewModel {
         steamID.value = newSteamID
     }
 
-    fun hasSteamID(): Boolean {
-        return steamID.value.isNotBlank()
+    fun clear() {
+        steamID.value = ""
+        _state.value = UserStatsState()
+    }
+
+    fun loadUserStats(steamID: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+            try {
+                val stats = getUserStatsUseCase.execute(steamID)
+                _state.value = _state.value.copy(
+                    stats = stats,
+                    isLoading = false,
+                    error = null
+                )
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "SteamID invalide"
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun UserStatsView(viewModel: UserStatsViewModel) {
+fun UserStatsView(
+    viewModel: UserStatsViewModel,
+    platform: String
+) {
+    val state by viewModel.state.collectAsState()
     val steamID by viewModel.steamID
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var localError by remember { mutableStateOf<String?>(null) }
 
-    if (viewModel.hasSteamID()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+    val hasValidStats = state.stats?.username?.isNotBlank() == true
+    if (hasValidStats) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Row(
+            // Bouton Déconnexion en haut à droite
+            Button(
+                onClick = { viewModel.clear() },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.Top
+                    .align(Alignment.TopEnd),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
             ) {
-                Button(
-                    onClick = { viewModel.updateSteamID("") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text("Se déconnecter")
-                }
+                Text("Se déconnecter")
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Affichage modifié pour l'utilisateur avec Steam ID : $steamID",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+            // Contenu utilisateur centré avec avatar et infos
+            UserDataView(
+                stats = state,
+                platform = platform,
+                modifier = Modifier.align(Alignment.TopCenter)
             )
         }
     } else {
+        val errorMessage = state.error ?: localError
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -93,13 +114,16 @@ fun UserStatsView(viewModel: UserStatsViewModel) {
         ) {
             SteamIDInputField(
                 steamID = steamID,
-                onSteamIDChange = {}, // Pas utilisé ici
-                onSubmit = { inputSteamID ->
-                    if (inputSteamID.isBlank()) {
-                        errorMessage = "Le champ Steam ID ne peut pas être vide."
+                onSteamIDChange = {
+                    viewModel.updateSteamID(it)
+                    localError = null
+                },
+                onSubmit = { input ->
+                    if (input.isBlank()) {
+                        localError = "Le champ Steam ID ne peut pas être vide."
                     } else {
-                        errorMessage = null
-                        viewModel.updateSteamID(inputSteamID)
+                        viewModel.updateSteamID(input)
+                        viewModel.loadUserStats(input)
                     }
                 },
                 errorMessage = errorMessage
@@ -107,7 +131,6 @@ fun UserStatsView(viewModel: UserStatsViewModel) {
         }
     }
 }
-
 
 @Composable
 fun SteamIDInputField(
@@ -173,4 +196,53 @@ fun SteamIDInputField(
         style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
     )
+}
+
+@Composable
+fun UserDataView(
+    stats: UserStatsState,
+    platform: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .padding(top = 48.dp)
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            if(platform == "Mobile") {
+                // Afficher l'avatar de l'utilisateur pour mobile
+                AsyncImage(
+                    model = stats.stats?.avatarUrl,
+                    contentDescription = "Avatar utilisateur",
+                    modifier = Modifier.size(64.dp)
+                )
+            } else {
+                // Afficher l'avatar de l'utilisateur pour desktop
+                Image(
+                    painter = rememberAsyncImagePainter(model = stats.stats?.avatarUrl),
+                    contentDescription = "Avatar utilisateur",
+                    modifier = Modifier.size(64.dp)
+                )
+            }
+            Column {
+                Text(
+                    text = stats.stats?.username.orEmpty(),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "SteamID : ${stats.stats?.steamID}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
+    }
 }

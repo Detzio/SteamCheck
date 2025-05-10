@@ -92,7 +92,6 @@ fun Navbar(
 ) {
     var selectedPage by remember { mutableStateOf(0) }
     val platform = getPlatform()
-    val userStatsViewModel = remember { UserStatsViewModel() }
 
     val onLogout = { userStatsViewModel.updateSteamID("") }
     val hasSteamID by userStatsViewModel.steamID
@@ -107,7 +106,7 @@ fun Navbar(
                 if (selectedPage == 0) {
                     GamesListView(viewModel = gamesListViewModel)
                 } else {
-                    UserStatsView(viewModel = userStatsViewModel)
+                    UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
                 }
             }
         }
@@ -125,7 +124,7 @@ fun Navbar(
                 if (selectedPage == 0) {
                     GamesListView(viewModel = gamesListViewModel)
                 } else {
-                    UserStatsView(viewModel = userStatsViewModel)
+                    UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
                 }
             }
         }

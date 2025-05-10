@@ -9,7 +9,8 @@ fun UserDto.toDomain(): User {
     return User(
         id = this.id,
         username = this.username,
-        avatarUrl = this.avatarUrl
+        avatarUrl = this.avatarUrl,
+        steamID = this.steamID
     )
 }
 
