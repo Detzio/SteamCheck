@@ -1,43 +1,40 @@
 package org.steamcheck.project.presentation.viewmodel
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import org.steamcheck.project.presentation.state.UserStatsState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class UserStatsViewModel {
-    private val _state = MutableStateFlow(UserStatsState())
-    val state: StateFlow<UserStatsState> get() = _state
-
-    fun loadUserStats(userId: String) {
-        // Implémentation pour charger les statistiques utilisateur
+    // Pour l'instant vide, à compléter avec la logique appropriée
+    private val viewModelScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    
+    fun clear() {
+        // Nettoyage des ressources
     }
 }
 
-
 @Composable
-fun UserStatsView() {
+fun UserStatsView(viewModel: UserStatsViewModel) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("You need to be logged in")
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { /*TODO*/ }) {
-            Text("Login")
-        }
+        Text(
+            "Profil Utilisateur",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(16.dp)
+        )
+        
+        Text(
+            "Cette section est en cours de développement",
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
-
-

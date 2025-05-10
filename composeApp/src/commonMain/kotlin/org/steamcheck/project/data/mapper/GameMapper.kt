@@ -7,6 +7,8 @@ fun GameDto.toDomain(): Game {
     return Game(
         id = this.id,
         name = this.name,
-        imageUrl = this.imageUrl
+        imageUrl = this.imageUrl,
+        price = this.price,
+        discountPercent = this.discountPercent
     )
 }

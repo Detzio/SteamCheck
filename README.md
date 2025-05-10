@@ -9,14 +9,14 @@ SteamCheck est une application Kotlin Multiplatform (KMP) qui permet de consulte
 
 ```
 SteamCheck/
-├── shared/
+├── commonMain/
 │   ├── data/           # Couche données (Repository, Sources de données)
 │   ├── domain/         # Logique métier et Use Cases
 │   ├── presentation/   # ViewModels partagés
 │   └── di/            # Injection de dépendances
 ├── androidApp/         # Application Android
 ├── desktopApp/        # Application Desktop
-└── iosApp/            # Application iOS
+└── iosMain/            # Application iOS
 ```
 
 ### Composants principaux
