@@ -48,11 +48,6 @@ kotlin {
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
 
-                // Coil3
-                implementation(libs.coil.compose)
-                implementation(libs.coil3.core)
-                implementation(libs.coil3.compose)
-                implementation(libs.coil3.network.okhttp)
             }
         }
         val androidMain by getting {
@@ -63,6 +58,12 @@ kotlin {
                 implementation(libs.androidx.lifecycle.runtime.compose)
                 implementation(libs.koin.compose)
                 implementation(libs.ktor.client.okhttp)
+
+                // Coil3
+                implementation(libs.coil.compose)
+                implementation(libs.coil3.core)
+                implementation(libs.coil3.compose)
+                implementation(libs.coil3.network.okhttp)
             }
         }
         val desktopMain by getting {

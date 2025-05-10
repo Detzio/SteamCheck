@@ -1,6 +1,5 @@
 package org.steamcheck.project.presentation.viewmodel
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -17,8 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.steamcheck.project.domain.usecase.GetUserStatsUseCase
 import org.steamcheck.project.presentation.state.UserStatsState
+import org.steamcheck.project.presentation.ui.ImageLoader
 
 class UserStatsViewModel(
     private val getUserStatsUseCase: GetUserStatsUseCase
@@ -216,21 +214,11 @@ fun UserDataView(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            if(platform == "Mobile") {
-                // Afficher l'avatar de l'utilisateur pour mobile
-                AsyncImage(
-                    model = stats.stats?.avatarUrl,
-                    contentDescription = "Avatar utilisateur",
-                    modifier = Modifier.size(64.dp)
-                )
-            } else {
-                // Afficher l'avatar de l'utilisateur pour desktop
-                Image(
-                    painter = rememberAsyncImagePainter(model = stats.stats?.avatarUrl),
-                    contentDescription = "Avatar utilisateur",
-                    modifier = Modifier.size(64.dp)
-                )
-            }
+            ImageLoader(
+                url = stats.stats?.avatarUrl.orEmpty(),
+                contentDescription = "Avatar utilisateur",
+                modifier = Modifier.size(64.dp)
+            )
             Column {
                 Text(
                     text = stats.stats?.username.orEmpty(),
