@@ -14,3 +14,9 @@ fun SteamCheckTheme(
         content = content
     )
 }
+
+// Cette fonction permet une utilisation plus directe dans toutes les plateformes
+@Composable
+fun AppTheme(content: @Composable () -> Unit) {
+    SteamCheckTheme(content = content)
+}

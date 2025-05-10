@@ -33,7 +33,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 class UserStatsViewModel {
-    private val _state = MutableStateFlow(UserStatsState())    val state: StateFlow<UserStatsState> get() = _state
+    private val _state = MutableStateFlow(UserStatsState())
+    val state: StateFlow<UserStatsState> get() = _state
 
     var steamID = mutableStateOf("")
         private set
