@@ -52,7 +52,10 @@ class GamesListViewModel(
 }
 
 @Composable
-fun GamesListView(viewModel: GamesListViewModel) {
+fun GamesListView(
+    viewModel: GamesListViewModel,
+    modifier: Modifier = Modifier
+) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -60,17 +63,18 @@ fun GamesListView(viewModel: GamesListViewModel) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Bibliothèque des jeux",
             style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(16.dp)
         )
 
         if (state.isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
 
         state.error?.let { error ->
@@ -87,12 +91,17 @@ fun GamesListView(viewModel: GamesListViewModel) {
             items(state.games) { game ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = game.name,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         if (game.discountPercent > 0) {
                             Text(
@@ -100,7 +109,10 @@ fun GamesListView(viewModel: GamesListViewModel) {
                                 color = MaterialTheme.colorScheme.error
                             )
                         } else {
-                            Text(text = game.price)
+                            Text(
+                                text = game.price,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
                 }

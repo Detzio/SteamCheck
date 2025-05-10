@@ -1,5 +1,6 @@
 package org.steamcheck.project.presentation.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 
@@ -12,11 +13,4 @@ fun SteamCheckTheme(
     MaterialTheme(
         colorScheme = colors,
         content = content
-    )
-}
-
-// Cette fonction permet une utilisation plus directe dans toutes les plateformes
-@Composable
-fun AppTheme(content: @Composable () -> Unit) {
-    SteamCheckTheme(content = content)
-}
+    )}

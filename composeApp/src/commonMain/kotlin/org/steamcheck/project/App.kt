@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import org.steamcheck.project.data.remote.StoreApiImpl
 import org.steamcheck.project.domain.usecase.GetGamesUseCase
 import org.steamcheck.project.presentation.Navbar
+import org.steamcheck.project.presentation.ui.SteamCheckTheme
 import org.steamcheck.project.presentation.viewmodel.GamesListViewModel
 import org.steamcheck.project.presentation.viewmodel.UserStatsViewModel
 
@@ -31,6 +32,9 @@ fun App() {
     val gamesListViewModel = remember { GamesListViewModel(getGamesUseCase) }
     val userStatsViewModel = remember { UserStatsViewModel() }
     
-    // Affichage de la navbar avec les dépendances déjà initialisées
-    Navbar(gamesListViewModel, userStatsViewModel)
+    // Application du thème à toute l'application
+    SteamCheckTheme {
+        // Affichage de la navbar avec les dépendances déjà initialisées
+        Navbar(gamesListViewModel, userStatsViewModel)
+    }
 }
