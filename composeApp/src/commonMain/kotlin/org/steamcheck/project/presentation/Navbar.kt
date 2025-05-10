@@ -44,25 +44,39 @@ fun FooterNavBar(selected: Int, onSelect: (Int) -> Unit) {
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HeaderNavBar(selected: Int, onSelect: (Int) -> Unit) {
+fun HeaderNavBar(selected: Int, onSelect: (Int) -> Unit, onLogout: () -> Unit, hasSteamID: Boolean) {
     TopAppBar(
         title = {},
         actions = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                TextButton(onClick = { onSelect(0) }) {
-                    Icon(Icons.Default.Home, contentDescription = "Bibliothèque")
-                    Spacer(modifier = Modifier.size(4.dp))
-                    Text("Bibliothèque", color = if (selected == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+                Row(horizontalArrangement = Arrangement.Start) {
+                    TextButton(onClick = { onSelect(0) }) {
+                        Icon(Icons.Default.Home, contentDescription = "Bibliothèque")
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text("Bibliothèque", color = if (selected == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+                    }
+                    TextButton(onClick = { onSelect(1) }) {
+                        Icon(Icons.Default.Person, contentDescription = "Profil")
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text("Profil", color = if (selected == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+                    }
                 }
-                TextButton(onClick = { onSelect(1) }) {
-                    Icon(Icons.Default.Person, contentDescription = "Profil")
-                    Spacer(modifier = Modifier.size(4.dp))
-                    Text("Profil", color = if (selected == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+                if (hasSteamID) {
+                    Button(
+                        onClick = onLogout,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text("Se déconnecter")
+                    }
                 }
             }
         },
@@ -77,6 +91,10 @@ fun HeaderNavBar(selected: Int, onSelect: (Int) -> Unit) {
 fun Navbar() {
     var selectedPage by remember { mutableStateOf(0) }
     val platform = getPlatform()
+    val userStatsViewModel = remember { UserStatsViewModel() }
+
+    val onLogout = { userStatsViewModel.updateSteamID("") }
+    val hasSteamID by userStatsViewModel.steamID
 
     when (platform.platform) {
         "Mobile" -> {
@@ -88,20 +106,25 @@ fun Navbar() {
                 if (selectedPage == 0) {
                     GamesListView()
                 } else {
-                    UserStatsView()
+                    UserStatsView(viewModel = userStatsViewModel)
                 }
             }
         }
         "Desktop" -> {
             Scaffold(
                 topBar = {
-                    HeaderNavBar(selected = selectedPage, onSelect = { selectedPage = it })
+                    HeaderNavBar(
+                        selected = selectedPage,
+                        onSelect = { selectedPage = it },
+                        onLogout = onLogout,
+                        hasSteamID = hasSteamID.isNotBlank()
+                    )
                 }
             ) {
                 if (selectedPage == 0) {
                     GamesListView()
                 } else {
-                    UserStatsView()
+                    UserStatsView(viewModel = userStatsViewModel)
                 }
             }
         }
