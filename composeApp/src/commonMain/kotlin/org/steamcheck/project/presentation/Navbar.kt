@@ -16,12 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.steamcheck.project.getPlatform
-import org.steamcheck.project.presentation.viewmodel.GamesListView
 import org.steamcheck.project.presentation.viewmodel.GamesListViewModel
-import org.steamcheck.project.presentation.viewmodel.UserStatsView
 import org.steamcheck.project.presentation.viewmodel.UserStatsViewModel
+import org.steamcheck.project.presentation.viewmodel.GamesListView
+import org.steamcheck.project.presentation.viewmodel.UserStatsView
 
 @Composable
 fun FooterNavBar(selected: Int, onSelect: (Int) -> Unit) {
@@ -86,14 +85,15 @@ fun HeaderNavBar(selected: Int, onSelect: (Int) -> Unit, onLogout: () -> Unit, h
     )
 }
 
-
 @Composable
-fun Navbar() {
+fun Navbar(
+    gamesListViewModel: GamesListViewModel,
+    userStatsViewModel: UserStatsViewModel
+) {
     var selectedPage by remember { mutableStateOf(0) }
     val platform = getPlatform()
-    val userStatsViewModel = remember { UserStatsViewModel() }
 
-    val onLogout = { userStatsViewModel.updateSteamID("") }
+    val onLogout = { userStatsViewModel.clear() }
     val hasSteamID by userStatsViewModel.steamID
 
     when (platform.platform) {
@@ -104,9 +104,9 @@ fun Navbar() {
                 }
             ) {
                 if (selectedPage == 0) {
-                    GamesListView()
+                    GamesListView(viewModel = gamesListViewModel)
                 } else {
-                    UserStatsView(viewModel = userStatsViewModel)
+                    UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
                 }
             }
         }
@@ -122,9 +122,9 @@ fun Navbar() {
                 }
             ) {
                 if (selectedPage == 0) {
-                    GamesListView()
+                    GamesListView(viewModel = gamesListViewModel)
                 } else {
-                    UserStatsView(viewModel = userStatsViewModel)
+                    UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
                 }
             }
         }
