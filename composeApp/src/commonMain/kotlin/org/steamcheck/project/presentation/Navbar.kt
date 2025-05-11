@@ -93,7 +93,7 @@ fun Navbar(
     var selectedPage by remember { mutableStateOf(0) }
     val platform = getPlatform()
 
-    val onLogout = { userStatsViewModel.updateSteamID("") }
+    val onLogout = { userStatsViewModel.clear() }
     val hasSteamID by userStatsViewModel.steamID
 
     when (platform.platform) {
