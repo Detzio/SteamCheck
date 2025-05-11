@@ -10,6 +10,7 @@ import org.steamcheck.project.data.remote.SteamApiImpl
 import org.steamcheck.project.data.remote.StoreApiImpl
 import org.steamcheck.project.domain.usecase.GetGamesUseCase
 import org.steamcheck.project.domain.usecase.GetUserDataUseCase
+import org.steamcheck.project.domain.usecase.SearchGamesUseCase
 import org.steamcheck.project.presentation.Navbar
 import org.steamcheck.project.presentation.ui.SteamCheckTheme
 import org.steamcheck.project.presentation.viewmodel.GamesListViewModel
@@ -31,7 +32,8 @@ fun App() {
     // Initialisation de l'architecture
     val api = remember { StoreApiImpl(client) }
     val getGamesUseCase = remember { GetGamesUseCase(api) }
-    val gamesListViewModel = remember { GamesListViewModel(getGamesUseCase) }
+    val searchGamesUseCase = remember { SearchGamesUseCase(api) }
+    val gamesListViewModel = remember { GamesListViewModel(getGamesUseCase, searchGamesUseCase) }
 
     // Initialisation de l'utilisateur
     val userApi = remember { SteamApiImpl(client) }

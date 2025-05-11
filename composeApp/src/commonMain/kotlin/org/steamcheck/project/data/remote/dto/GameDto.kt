@@ -5,9 +5,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GameDto(
-    @SerialName("id") val id: String,
+    @SerialName("appid") val id: String,
     @SerialName("name") val name: String,
-    @SerialName("header_image") val imageUrl: String,
-    @SerialName("final_price") val price: String,
-    @SerialName("discount_percent") val discountPercent: Int
+    @SerialName("header_image") val headerImage: String,
+    @SerialName("final_price") val finalPrice: Double,
+    @SerialName("discount_percent") val discountPercent: Int,
+    @SerialName("release_date") val releaseDate: String = "",
+    @SerialName("developer") val developer: List<String> = emptyList(),
+    @SerialName("platforms") val platforms: List<String> = emptyList(),
+    @SerialName("genres") val genres: List<String> = emptyList(),
+    @SerialName("background") val background: String = ""
 )

@@ -1,6 +1,5 @@
 package org.steamcheck.project.presentation.ui
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -8,5 +7,5 @@ import androidx.compose.ui.Modifier
 expect fun ImageLoader(
     url: String,
     contentDescription: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier
 )
