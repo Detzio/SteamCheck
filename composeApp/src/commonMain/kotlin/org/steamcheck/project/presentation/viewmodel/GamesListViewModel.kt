@@ -105,8 +105,8 @@ fun GamesListView(
                         )
                         if (game.discountPercent > 0) {
                             Text(
-                                text = "-${game.discountPercent}% : ${game.price}",
-                                color = MaterialTheme.colorScheme.error
+                                text = "${game.price}€ : -${game.discountPercent}%",
+                                color = MaterialTheme.colorScheme.primary
                             )
                         } else {
                             Text(

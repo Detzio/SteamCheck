@@ -56,6 +56,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -110,3 +111,4 @@ compose.desktop {
         }
     }
 }
+
