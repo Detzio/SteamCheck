@@ -6,8 +6,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import org.steamcheck.project.data.remote.SteamApiImpl
 import org.steamcheck.project.data.remote.StoreApiImpl
 import org.steamcheck.project.domain.usecase.GetGamesUseCase
+import org.steamcheck.project.domain.usecase.GetUserDataUseCase
 import org.steamcheck.project.presentation.Navbar
 import org.steamcheck.project.presentation.ui.SteamCheckTheme
 import org.steamcheck.project.presentation.viewmodel.GamesListViewModel
@@ -30,7 +32,11 @@ fun App() {
     val api = remember { StoreApiImpl(client) }
     val getGamesUseCase = remember { GetGamesUseCase(api) }
     val gamesListViewModel = remember { GamesListViewModel(getGamesUseCase) }
-    val userStatsViewModel = remember { UserStatsViewModel() }
+
+    // Initialisation de l'utilisateur
+    val userApi = remember { SteamApiImpl(client) }
+    val userStatsUseCase = remember { GetUserDataUseCase(userApi) }
+    val userStatsViewModel = remember { UserStatsViewModel(userStatsUseCase) }
     
     // Application du thème à toute l'application
     SteamCheckTheme {
