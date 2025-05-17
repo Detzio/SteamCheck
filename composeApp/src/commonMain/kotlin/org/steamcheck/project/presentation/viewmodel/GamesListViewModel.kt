@@ -63,9 +63,13 @@ class GamesListViewModel(
                 
                 // Sélection des jeux en vedette (top 5 pour le carousel)
                 val featuredGames = sortedGames.take(5)
+                
+                // Sélectionner les jeux à afficher initialement (10 premiers)
+                val initialDisplayedGames = sortedGames.take(_state.value.displayCount)
 
                 _state.value = _state.value.copy(
                     games = sortedGames,
+                    displayedGames = initialDisplayedGames,
                     featuredGames = featuredGames,
                     isLoading = false,
                     error = null,
@@ -82,27 +86,31 @@ class GamesListViewModel(
             }
         }
     }
-    
+
     // Fonction pour charger tous les jeux disponibles
     fun loadAllGames() {
         // Éviter de charger les jeux si c'est déjà en cours
         if (_state.value.isLoading) return
-        
+
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
                 println("Chargement de tous les jeux en cours...")
                 val games = getGamesUseCase.loadAllGames()
                 println("Tous les jeux chargés: ${games.size} jeux trouvés")
-                
+
                 // Tri des jeux par date (du plus récent au plus ancien)
                 val sortedGames = sortGamesByReleaseDate(games)
-                
+
                 // Sélection des jeux en vedette (top 5 pour le carousel)
                 val featuredGames = sortedGames.take(5)
 
+                // Sélectionner les jeux à afficher initialement (10 premiers)
+                val initialDisplayedGames = sortedGames.take(_state.value.displayCount)
+
                 _state.value = _state.value.copy(
                     games = sortedGames,
+                    displayedGames = initialDisplayedGames,
                     featuredGames = featuredGames,
                     isLoading = false,
                     error = null,
@@ -119,41 +127,46 @@ class GamesListViewModel(
             }
         }
     }
-    
+
     // Fonction pour charger la page suivante
     fun loadNextPage() {
         val currentState = _state.value
-        
+
         // Vérifier si déjà en train de charger ou s'il n'y a plus de pages
         if (currentState.isLoadingMore || !currentState.hasMorePages) {
             return
         }
-        
+
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoadingMore = true)
             try {
                 val nextPage = currentState.currentPage + 1
                 println("Chargement de la page $nextPage")
-                
+
                 val newGames = getGamesUseCase.execute(nextPage, pageSize)
-                
+
                 // S'il n'y a plus de jeux, mettre à jour hasMorePages
                 val hasMore = newGames.isNotEmpty() && newGames.size >= pageSize
-                
+
                 // Filtrer pour éviter les doublons
                 val existingIds = currentState.games.map { it.id }.toSet()
                 val uniqueNewGames = newGames.filter { it.id !in existingIds }
-                
+
                 // Trier et ajouter les nouveaux jeux
                 val allGames = currentState.games + uniqueNewGames
-                
+                val sortedAllGames = sortGamesByReleaseDate(allGames)
+
+                // Recalculer les jeux à afficher
+                val displayedGames = sortedAllGames.take(currentState.displayCount)
+
                 _state.value = _state.value.copy(
-                    games = sortGamesByReleaseDate(allGames),
+                    games = sortedAllGames,
+                    displayedGames = displayedGames,
                     currentPage = nextPage,
                     isLoadingMore = false,
                     hasMorePages = hasMore
                 )
-                
+
                 println("Page $nextPage chargée. ${uniqueNewGames.size} nouveaux jeux. Total: ${allGames.size} jeux.")
             } catch (e: Exception) {
                 println("Erreur lors du chargement de la page suivante: ${e.message}")
@@ -165,9 +178,41 @@ class GamesListViewModel(
         }
     }
 
+    // Fonction pour charger plus de jeux à afficher
+    fun loadMoreGames() {
+        val currentState = _state.value
+
+        // Vérifier si tous les jeux sont déjà affichés
+        if (currentState.displayedGames.size >= currentState.games.size) {
+            // Si on a affiché tous les jeux déjà chargés, charger la page suivante
+            if (currentState.hasMorePages) {
+                loadNextPage()
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoadingMore = true)
+
+            // Calculer le nouveau nombre de jeux à afficher
+            val newDisplayCount = currentState.displayCount + 10
+
+            // Récupérer les jeux supplémentaires
+            val newDisplayedGames = currentState.games.take(newDisplayCount)
+
+            _state.value = _state.value.copy(
+                displayedGames = newDisplayedGames,
+                displayCount = newDisplayCount,
+                isLoadingMore = false
+            )
+
+            println("Chargement de plus de jeux. Affichant ${newDisplayedGames.size}/${currentState.games.size} jeux.")
+        }
+    }
+
     // Fonction pour trier les jeux par date de sortie (du plus récent au plus ancien)
     private fun sortGamesByReleaseDate(games: List<Game>): List<Game> {
-        return games.sortedByDescending { game -> 
+        return games.sortedByDescending { game ->
             if (game.releaseDate.isBlank()) {
                 // Si pas de date, placer à la fin
                 "0000-00-00"
@@ -230,22 +275,6 @@ fun GamesListView(
 ) {
     val state by viewModel.state.collectAsState()
     val lazyListState = rememberLazyListState()
-    
-    // Effet pour détecter quand on atteint la fin de la liste et charger plus de jeux
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { 
-            if (lazyListState.layoutInfo.totalItemsCount == 0) return@snapshotFlow false
-            
-            val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
-            val lastIndex = lazyListState.layoutInfo.totalItemsCount - 1
-            
-            lastVisibleItem != null && lastVisibleItem.index >= lastIndex - 2
-        }.collect { isAtBottom ->
-            if (isAtBottom && !state.isLoadingMore && state.hasMorePages) {
-                viewModel.loadNextPage()
-            }
-        }
-    }
 
     LaunchedEffect(Unit) {
         viewModel.loadGames()
@@ -273,9 +302,9 @@ fun GamesListView(
                 onClearSearch = { viewModel.clearSearch() },
                 modifier = Modifier.weight(1f)
             )
-            
+
             Spacer(modifier = Modifier.width(8.dp))
-            
+
             Button(
                 onClick = { viewModel.loadAllGames() },
                 modifier = Modifier.height(56.dp)
@@ -313,11 +342,11 @@ fun GamesListView(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     .align(Alignment.Start)
             )
-            
+
             GameCarousel(games = state.featuredGames)
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 "Tous les jeux",
                 style = MaterialTheme.typography.titleMedium,
@@ -327,10 +356,10 @@ fun GamesListView(
             )
         }
 
-        // Afficher les résultats de recherche si une recherche est active, sinon afficher tous les jeux
-        val gamesDisplay = if (state.searchQuery.isNotBlank()) state.searchResults else state.games
+        // Afficher les résultats de recherche si une recherche est active, sinon afficher les jeux actuellement affichés
+        val gamesDisplay = if (state.searchQuery.isNotBlank()) state.searchResults else state.displayedGames
 
-        // Utilisation du lazy column pour pouvoir paginer
+        // Utilisation du lazy column pour afficher les jeux
         LazyColumn(
             state = lazyListState,
             modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
@@ -343,8 +372,8 @@ fun GamesListView(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            
-            // Afficher un indicateur de chargement en bas si on charge plus de jeux
+
+            // Afficher un indicateur de chargement si on charge plus de jeux
             if (state.isLoadingMore) {
                 item {
                     Box(
@@ -357,6 +386,20 @@ fun GamesListView(
                         )
                     }
                 }
+            }
+
+            // Bouton "Charger plus"
+            item {
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Button(onClick = { viewModel.loadMoreGames() }) {
+                            Text("Charger plus de jeux")
+                        }
+                    }
+
             }
         }
     }
@@ -380,7 +423,7 @@ fun GameCarousel(games: List<Game>) {
     }
 
     val pagerState = rememberPagerState(pageCount = { games.size })
-    
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -395,9 +438,9 @@ fun GameCarousel(games: List<Game>) {
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxSize()
             )
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         // Indicateurs de page
         Row(
             modifier = Modifier.wrapContentHeight().fillMaxWidth(),
@@ -410,18 +453,18 @@ fun GameCarousel(games: List<Game>) {
                         .padding(horizontal = 4.dp)
                         .size(if (selected) 10.dp else 8.dp)
                         .background(
-                            color = if (selected) 
-                                MaterialTheme.colorScheme.primary 
-                            else 
+                            color = if (selected)
+                                MaterialTheme.colorScheme.primary
+                            else
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             shape = MaterialTheme.shapes.small
                         )
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Carousel inférieur (miniatures)
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -435,9 +478,9 @@ fun GameCarousel(games: List<Game>) {
                         .width(80.dp)
                         .height(45.dp)
                         .background(
-                            color = if (isSelected) 
-                                MaterialTheme.colorScheme.primaryContainer 
-                            else 
+                            color = if (isSelected)
+                                MaterialTheme.colorScheme.primaryContainer
+                            else
                                 MaterialTheme.colorScheme.surface,
                             shape = MaterialTheme.shapes.small
                         )
@@ -447,7 +490,7 @@ fun GameCarousel(games: List<Game>) {
                         contentDescription = "Miniature de ${games[index].name}",
                         modifier = Modifier.fillMaxSize()
                     )
-                    
+
                     if (isSelected) {
                         Box(
                             modifier = Modifier
@@ -514,7 +557,7 @@ fun GameCard(
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     if (game.discountPercent > 0) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(
@@ -637,4 +680,3 @@ fun SearchBar(
         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
 }
-

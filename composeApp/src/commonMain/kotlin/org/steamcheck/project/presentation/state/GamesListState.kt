@@ -4,6 +4,8 @@ import org.steamcheck.project.domain.model.Game
 
 data class GamesListState(
     val games: List<Game> = emptyList(),
+    val displayedGames: List<Game> = emptyList(), // Jeux actuellement affichés
+    val displayCount: Int = 10, // Nombre de jeux à afficher à la fois
     val featuredGames: List<Game> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
