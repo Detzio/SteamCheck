@@ -1,10 +1,12 @@
 package org.steamcheck.project.presentation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -19,8 +21,8 @@ import androidx.compose.ui.unit.dp
 import org.steamcheck.project.getPlatform
 import org.steamcheck.project.presentation.viewmodel.GamesListViewModel
 import org.steamcheck.project.presentation.viewmodel.UserStatsViewModel
-import org.steamcheck.project.presentation.viewmodel.GamesListView
 import org.steamcheck.project.presentation.viewmodel.UserStatsView
+import org.steamcheck.project.presentation.ui.GamesListScreen
 
 @Composable
 fun FooterNavBar(selected: Int, onSelect: (Int) -> Unit) {
@@ -102,11 +104,13 @@ fun Navbar(
                 bottomBar = {
                     FooterNavBar(selected = selectedPage, onSelect = { selectedPage = it })
                 }
-            ) {
-                if (selectedPage == 0) {
-                    GamesListView(viewModel = gamesListViewModel)
-                } else {
-                    UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
+            ) { paddingValues ->
+                Column(modifier = Modifier.padding(paddingValues)) {
+                    if (selectedPage == 0) {
+                        GamesListScreen(viewModel = gamesListViewModel) // Correction ici
+                    } else {
+                        UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
+                    }
                 }
             }
         }
@@ -120,13 +124,16 @@ fun Navbar(
                         hasSteamID = hasSteamID.isNotBlank()
                     )
                 }
-            ) {
-                if (selectedPage == 0) {
-                    GamesListView(viewModel = gamesListViewModel)
-                } else {
-                    UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
+            ) { paddingValues ->
+                Column(modifier = Modifier.padding(paddingValues)) {
+                    if (selectedPage == 0) {
+                        GamesListScreen(viewModel = gamesListViewModel) // Correction ici
+                    } else {
+                        UserStatsView(viewModel = userStatsViewModel, platform = platform.platform)
+                    }
                 }
             }
         }
     }
 }
+
