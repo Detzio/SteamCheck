@@ -2,11 +2,13 @@
 
 ## Auteurs
 ESGI 3AL 2024-2025: 
-- Pierre-Henri Luczak
 - Thomas Dusséaux
+- Pierre-Henri Luczak
 
 ## Description
 SteamCheck est une application Kotlin Multiplatform (KMP) qui permet de consulter les détails des jeux Steam ainsi que les statistiques des utilisateurs Steam. L'application vous permet de rechercher des jeux, consulter leurs détails et voir les statistiques de votre compte Steam.
+
+![Exemple d'écran](Exemple.png)
 
 ## Architecture du Projet
 
